@@ -12,6 +12,6 @@ The problem we are trying to solve is that the drone's current flight time is to
 
 1. Run the code by using this command in the terminal &rarr; python main.py
 2. When prompted for a file, enter the name of a file of your choice. 
-3. Then, when prompted for an algorithm, please choose one of the three algorithms we implemented by selecting 1, 2, or 3: Random Search, Nearest Neighbor, or Augmented Nearest Neighbor. 
-4. Press ENTER to stop the algorithm from running for choices 1 and 3.
-5. The output will be the best distance output to the command line, a .txt file containing the best route, and a .jpeg file containing a visualization of the route. 
+3. The output will list the landing pad locations, nodes visited, and routes for all possible number of drones
+4. Then, when prompted, please enter the desired number of drones to be used.
+5. The output will be ... 
