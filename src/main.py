@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from kmeans import kmeans
 
-
 def main():
     filename = input("Enter the name of file: ").strip()
     filepath = f"../data/{filename}"
@@ -23,29 +22,29 @@ def main():
     allSolutions = []
 
     # Running kmeans for 1–4 drones --> 10 times each
-    for num_drones in range(1, 5):
-        best_solution = None
-        best_distance = float("inf")
+    for numDrones in range(1, 5):
+        bestSolution = None
+        bestDistance = float("inf")
 
         for i in range(10):
-            result = kmeans(coords, num_drones)
-            if result["total_distance"] < best_distance:
-                best_distance = result["total_distance"]
-                best_solution = result
+            result = kmeans(coords, numDrones)
+            if result["totalDistance"] < bestDistance:
+                bestDistance = result["totalDistance"]
+                bestSolution = result
 
-        allSolutions.append(best_solution)
+        allSolutions.append(bestSolution)
 
-        print(f"{num_drones}) If you use {num_drones} drone(s), the total route will be {best_solution['total_distance']:.1f} meters")
-        for i, c in enumerate(best_solution["clusters"], 1):
+        print(f"{numDrones}) If you use {numDrones} drone(s), the total route will be {bestSolution['totalDistance']:.1f} meters")
+        for i, c in enumerate(bestSolution["clusters"], 1):
             pad = c["center"]
             print(f"   {i}. Landing Pad {i} should be at [{int(pad[0])},{int(pad[1])}], "
                   f"serving {len(c['route'])} locations, route is {c['distance']:.1f} meters")
         print()
 
-    # # objective funtion results
-    # print("Objective Function Values (total distances):")
-    # for i, sol in enumerate(allSolutions, 1):
-    #     print(f"  {i} drone(s): {sol['total_distance']:.1f} meters")
+    print("Objective Function Values (k-means: sum of squared distances):")
+    for i, sol in enumerate(allSolutions, 1):
+        print(f"  {i} drone(s): {sol['objective']:.2f}")
+    print()
 
     choice = int(input("\nSelect number of drones (1–4): "))
     chosen = allSolutions[choice - 1]
@@ -54,15 +53,11 @@ def main():
 
     for i, cluster in enumerate(chosen["clusters"], 1):
         dist = int(cluster["distance"])
-        out_path = f"{folder}{base}_{i}_solution_{dist}.txt"
-        
-        coords_to_save = np.array([coords[int(idx)] for idx in cluster["route"]])
-        np.savetxt(out_path, coords_to_save, fmt="%.4f") 
-        print(f"  Saved {out_path}")
-
+        outputPath = f"{folder}{base}_{i}_solution_{dist}.txt"
+        np.savetxt(outputPath, cluster["route"], fmt="%.4f")
+        print(f"  Saved {outputPath}")
 
     print("\nAll done. Routes saved in /solutions/ folder.")
-
 
 if __name__ == "__main__":
     main()

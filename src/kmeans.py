@@ -1,50 +1,51 @@
 import numpy as np
-from random import randint
 from nearestNeighbor import NearestNeighborDistance as nn
-from nearestNeighbor import euclideanDistance as ed
 
+def objectiveFunction(points, labels, centers):
+    return float(np.sum((points - centers[labels]) ** 2))
 
 def kmeans(points, k):
-    
     points = np.array(points)
     n = len(points)
 
     # Step 2
-    centroids = points[[randint(0, n - 1) for m in range(k)]]
+    centers = points[np.random.choice(n, k, replace=False)]
 
     for j in range(100):
 
         # Step 3
-        dists = np.linalg.norm(points[:, None] - centroids[None, :], axis=2)
-        labels = np.argmin(dists, axis=1)
+        expandedPoints = points[:, np.newaxis]
+        distances = np.linalg.norm(expandedPoints - centers, axis=2)
+        labels = np.argmin(distances, axis=1)
 
-        # Step 4 
-        new_centroids = np.array([
-            points[labels == i].mean(axis=0) if np.any(labels == i) else centroids[i]
+        # Step 4
+        newCenters = np.array([
+            points[labels == i].mean(axis=0) if np.any(labels == i) else centers[i]
             for i in range(k)
         ])
 
         # Step 5
-        if np.allclose(new_centroids, centroids):
+        if np.allclose(newCenters, centers):
             break
-        centroids = new_centroids
+        centers = newCenters
 
     clusters = []
-    total_distance = 0
 
     for i in range(k):
 
-        cluster_points = points[labels == i]
-
-        if len(cluster_points) == 0:
+        clusterPoints = points[labels == i]
+        if len(clusterPoints) == 0:
             continue
-        
-        route, dist = nn(cluster_points)
-        total_distance += dist
+
+        route, dist = nn(clusterPoints)
+        route = [r for r in route if r < len(clusterPoints)]
         clusters.append({
-            "center": centroids[i],
-            "route": route,
+            "center": centers[i],
+            "route": clusterPoints[route],
             "distance": dist
         })
 
-    return {"total_distance": total_distance, "clusters": clusters}
+    kmeansObj = objectiveFunction(points, labels, centers)
+    totalDistance = sum(c["distance"] for c in clusters)
+
+    return {"totalDistance": totalDistance, "objective": kmeansObj, "clusters": clusters}
