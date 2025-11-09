@@ -1,92 +1,68 @@
-import seaborn as sns
+import os
+import math
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import sys, math
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+from kmeans import kmeans
 
-from randomSearch import randomSearch as rs
-from nearestNeighbor import NearestNeighborDistance as nn
-from augmented import augmentedNearestNeighbor as ann
-from visualize import visualization as vis
 
 def main():
-    
-    coordinates = []
-    
-    while True:
-        filename = input("Enter the name of the file: ")
-        filepath = f"../data/{filename}"
+    filename = input("Enter the name of file: ").strip()
+    filepath = f"../data/{filename}"
 
-        try:
-            with open(filepath, "r") as file:
-                for line in file:
-                    if len(line.split()) != 2:
-                         raise ValueError("Error in file formatting! Every line needs two numbers")
-                    x, y = map(float, line.split())
+    if not os.path.exists(filepath):
+        print(f"File not found: {filepath}")
+        return
 
-                    if x < 0 or y < 0:
-                        raise ValueError("Coordinate values can not be negative.")
-                    
-                    if (x,y) in coordinates:
-                        raise ValueError("Duplicate coordinate found. Skipping over")
-                        continue
-                    coordinates.append((x, y))             
-            break
-        except FileNotFoundError:
-            print(f"Error: The file '{filename}' does not exist. Please try again.\n")
-        except ValueError as e:
-            print(f"Value is not recognized: {e}. Please try again.\n")
-    
-    if len(coordinates) == 0:
-        print("No coordinates found in file")
-        sys.exit()
+    coords = np.loadtxt(filepath)
+    numNodes = len(coords)
 
-    print("\nThere are", len(coordinates), "nodes.")
+    ready_time = (datetime.now(ZoneInfo("America/Los_Angeles")) + timedelta(minutes=5)).strftime("%I:%M%p").lower()
+    print(f"There are {numNodes} nodes: Solutions will be available by {ready_time}\n")
 
-    if len(coordinates) > 256:
-        print("The number of nodes exceeds 256! Try again with fewer nodes.")
-        sys.exit()
+    allSolutions = []
 
-    alg_type = input("\nChoose an algorithm to solve the Pheromone Delivery Drone problem.\n1. Random Search\n2. Nearest Neighbor\n3. Augmented Nearest Neighbor\n\nEnter choice: ")
+    # Running kmeans for 1–4 drones --> 10 times each
+    for num_drones in range(1, 5):
+        best_solution = None
+        best_distance = float("inf")
 
-    while alg_type not in ('1', '2', '3'):
-        print("Invalid input. Please enter '1', '2', or '3'.")
-        alg_type = input("1. Random Search\n2. Nearest Neighbor\n3. Augmented Nearest Neighbor\n")
+        for i in range(10):
+            result = kmeans(coords, num_drones)
+            if result["total_distance"] < best_distance:
+                best_distance = result["total_distance"]
+                best_solution = result
 
-    if alg_type == '1':
-        print("Running Random Search Algorithm...")
-        distance, route, time = rs(coordinates)
+        allSolutions.append(best_solution)
 
-    elif alg_type == '2':
-        print("Running Nearest Neighbor Algorithm...")
-        distance, route, time = nn(coordinates)
+        print(f"{num_drones}) If you use {num_drones} drone(s), the total route will be {best_solution['total_distance']:.1f} meters")
+        for i, c in enumerate(best_solution["clusters"], 1):
+            pad = c["center"]
+            print(f"   {i}. Landing Pad {i} should be at [{int(pad[0])},{int(pad[1])}], "
+                  f"serving {len(c['route'])} locations, route is {c['distance']:.1f} meters")
+        print()
+
+    # # objective funtion results
+    # print("Objective Function Values (total distances):")
+    # for i, sol in enumerate(allSolutions, 1):
+    #     print(f"  {i} drone(s): {sol['total_distance']:.1f} meters")
+
+    choice = int(input("\nSelect number of drones (1–4): "))
+    chosen = allSolutions[choice - 1]
+    base = filename.replace(".txt", "").split("/")[-1]
+    folder = "../solutions/"
+
+    for i, cluster in enumerate(chosen["clusters"], 1):
+        dist = int(cluster["distance"])
+        out_path = f"{folder}{base}_{i}_solution_{dist}.txt"
         
-    else:
-        print("Running Augmented Nearest Neighbor Algorithm...")
-        distance, route, time = ann(coordinates)
-    
-    if filename.endswith(".txt"):
-        filename = filename[:-4]
-
-    distance = math.ceil(distance)
-    
-    outputfile = filename + "_SOLUTION_" + str(distance) + ".txt"
-
-    print("\nBest Distance:", distance, "meters")
-    print("Best Route:", route)
-    print("Runtime:", round(time, 4), "seconds\n")
+        coords_to_save = np.array([coords[int(idx)] for idx in cluster["route"]])
+        np.savetxt(out_path, coords_to_save, fmt="%.4f") 
+        print(f"  Saved {out_path}")
 
 
-    # INCLUDE THIS CODE TO CREATE NEW SOLUTION FILE
-    # =============================================
-    with open(outputfile, 'w') as f:
-        for node in route:
-            f.write(str(node) + ' ')
-    # =============================================
+    print("\nAll done. Routes saved in /solutions/ folder.")
 
-    print("==> Route written to disk as", outputfile)
-    vis(filename, coordinates, route, distance)
-    print("\n")
 
 if __name__ == "__main__":
     main()
