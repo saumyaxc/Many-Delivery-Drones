@@ -4,6 +4,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from kmeans import kmeans
+from visualize import visualization as vis
 
 def main():
     filename = input("Enter the name of file: ").strip()
@@ -54,9 +55,10 @@ def main():
     for i, cluster in enumerate(chosen["clusters"], 1):
         dist = int(cluster["distance"])
         outputPath = f"{folder}{base}_{i}_solution_{dist}.txt"
-        np.savetxt(outputPath, cluster["route"], fmt="%.4f")
+        #np.savetxt(outputPath, cluster["route"], fmt="%.4f")
         print(f"  Saved {outputPath}")
-
+    
+    vis(f"{folder}{base}", chosen["clusters"])
     print("\nAll done. Routes saved in /solutions/ folder.")
 
 if __name__ == "__main__":
