@@ -8,42 +8,51 @@ def euclideanDistance(x, y):
         total += ((x[i]-y[i])**2)
     return math.sqrt(total)
 
-def NearestNeighborDistance (dataPts):
+def NearestNeighborDistance (dataPts, centroid): 
 
-    startTimer = time.time()
-
-    n = len(dataPts)
-    visited = [False] * n
+    # Combine centroid and delivery points. Centroid is always index 0.
+    routing_data = np.vstack([centroid, dataPts])
+    
+    # CORRECT: n is the total number of points (Centroid + Deliveries)
+    n_total = len(routing_data)
+    
+    # CORRECT: visited array must be the size of n_total
+    visited = [False] * n_total 
+    
+    # Start the route at index 0 (the centroid)
     route = [0]
     visited[0] = True
     totalDistance = 0.0
     currIndex = 0
 
-    for step in range(n-1):
+    # The loop needs to run n_total - 1 times to visit every other point
+    for step in range(n_total - 1): 
         nearestIndex = -1
         nearestDistance = float("inf")
 
-        for j in range(n):
+        # Inner loop checks every unvisited point, including delivery points
+        for j in range(n_total): 
             if not visited[j]:
-                d = euclideanDistance(dataPts[currIndex], dataPts[j])
+                d = euclideanDistance(routing_data[currIndex], routing_data[j])
                 if d < nearestDistance:
                     nearestDistance = d
                     nearestIndex = j
         
+        # If no unvisited point is found (shouldn't happen here, but safe coding)
+        if nearestIndex == -1:
+             break 
+                
         route.append(nearestIndex)
         visited[nearestIndex] = True
         totalDistance += nearestDistance
         currIndex = nearestIndex
 
-    backToBase = euclideanDistance(dataPts[currIndex], dataPts[0])
-    totalDistance += backToBase
+    # CORRECT: Closes the loop back to the starting point, the centroid (index 0)
+    backToCentroid = euclideanDistance(routing_data[currIndex], routing_data[0])
+    totalDistance += backToCentroid
     route.append(0)
 
-    route = [x + 1 for x in route]
-
-    endTimer = time.time()
-
-    if totalDistance > 6000:
-        print("Warning: Solution is ", totalDistance, "greater than the 6000-meter constraint. ")
+    # Note: The 'route = [x + 1 for x in route]' line is no longer necessary or correct 
+    # since the indices now refer to the position in routing_data.
 
     return route, totalDistance
