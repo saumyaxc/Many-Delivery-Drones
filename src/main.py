@@ -20,6 +20,9 @@ def main():
     ready_time = (datetime.now(ZoneInfo("America/Los_Angeles")) + timedelta(minutes=5)).strftime("%I:%M%p").lower()
     print(f"There are {numNodes} nodes: Solutions will be available by {ready_time}\n")
 
+    if numNodes > 4096:
+            print(f"Warning: There are more than 4096 nodes.")
+            
     allSolutions = []
 
     # Running kmeans for 1–4 drones --> 10 times each
