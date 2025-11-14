@@ -12,6 +12,8 @@ The problem we are trying to solve is that the drone's current flight time is to
 
 1. Run the code by using this command in the terminal &rarr; python main.py
 2. When prompted for a file, enter the name of a file of your choice. 
-3. The output will list the landing pad locations, nodes visited, and routes for all possible number of drones
+3. The output will list the landing pad locations, nodes visited, and routes for all possible numbers of drones
 4. Then, when prompted, please enter the desired number of drones to be used.
-5. The output will be ... 
+5. The output will be a set of route files and a visualization that shows the exact paths taken by the drones.
+
+Each route file contains the order in which the delivery points are visited and the distance of the whole trip. The program will also save a combined plot that displays all clusters and their routes together. This makes it easy to verify that each drone is covering a separate region and that the routes are as efficient as possible. Once the program finishes, you can open the solutions folder to view all route files and the final overall plot. 
